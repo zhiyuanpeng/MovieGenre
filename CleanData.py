@@ -11,11 +11,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 
 pd.set_option('display.max_colwidth', 300)
-meta = pd.read_csv("data/movie.metadata.tsv", sep='\t', header=None)
+meta = pd.read_csv("../Datasets/MovieSummaries/movie.metadata.tsv", sep='\t', header=None)
 meta.columns = ["movie_id", 1, "movie_name", 3, 4, 5, 6, 7, "genre"]
 
 plots = []
-with open("data/plot_summaries.txt", 'r') as f:
+with open("../Datasets/MovieSummaries/plot_summaries.txt", 'r') as f:
     reader = csv.reader(f, dialect='excel-tab')
     for row in tqdm(reader):
         plots.append(row)
@@ -55,10 +55,10 @@ all_genres = nltk.FreqDist(all_genres)
 # create dataframe
 all_genres_df = pd.DataFrame({'Genre': list(all_genres.keys()),
                               'Count': list(all_genres.values())})
-all_genres_sort = all_genres_df.sort_values(by=['Count'])
+genres_selected = all_genres_df[all_genres_df['Count'] >= 400]
 # g = all_genres_df.nlargest(columns="Count", n=50)
 # plt.figure(figsize=(12, 15))
-ax = sns.barplot(data=all_genres_df, x="Count", y="Genre")
+ax = sns.barplot(data=genres_selected, x="Count", y="Genre")
 ax.set(ylabel='Count')
 plt.show()
 print("done")
