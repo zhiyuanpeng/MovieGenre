@@ -9,6 +9,7 @@ import seaborn as sns
 from tqdm import tqdm
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+import get_tree as gt
 
 pd.set_option('display.max_colwidth', 300)
 meta = pd.read_csv("../Datasets/MovieSummaries/movie.metadata.tsv", sep='\t', header=None)
@@ -54,20 +55,40 @@ all_genres_df = pd.DataFrame({'Genre': list(all_genres.keys()),
 genres_selected = all_genres_df[all_genres_df['Count'] >= 100]
 # delete the genres not contained in the genres_selected
 frequent_genres = list(genres_selected.sort_values(by=['Count'], ascending=False)['Genre'])
+genres_h_f = []
 for row in tqdm(genres):
+    row_h_f = []
     for index in range(len(row) - 1):
-        if row[index] not in frequent_genres:
-            row.remove(row[index])
-movies['genre_new'] = genres
+        if row[index] in frequent_genres:
+            row_h_f.append(row[index])
+    genres_h_f.append(row_h_f)
+# use one hot to represent the genres
+one_hot = pd.get_dummies(frequent_genres)
+# use 126 vector to represent the genre
+genres_digit = []
+for row in tqdm(genres_h_f):
+    digit = np.zeros((126, ), dtype=int)
+    for name in row:
+        digit += np.array(one_hot[name])
+    genres_digit.append(list(digit))
+gt.get_tree(genres_digit)
+movies['genre_new'] = genres_h_f
 # delete the all 0 genre
 movies_new = movies[~(movies['genre_new'].str.len() == 0)]
-#
+# test the delete is woking or not
+# genres_test = []
+# for i in movies_new['genre_new']:
+#     genres_test.append(list(i))
+# all_genres_test = sum(genres_test, [])
+# unique_genres_test = set(all_genres_test)
 # g = all_genres_df.nlargest(columns="Count", n=50)
 # plt.figure(figsize=(35, 45))
 # ax = sns.barplot(data=genres_selected, x="Count", y="Genre")
 # ax.set(ylabel='Count')
 # plt.show()
+
 print("done")
+
 
 
 

@@ -63,28 +63,32 @@ class Graph:
         self.print_mst(parent)
 
 
+def get_co_score(list_name):
 
-toxic_comments_labels = np.loadtxt("data/processed/y_train.txt")
+    toxic_comments_labels = np.array(list_name)
 
-# get each label's count
-count_list = []
-for i in range(toxic_comments_labels.shape[1]):
-    count_list.append(np.sum(toxic_comments_labels[:, i]))
+    # get each label's count
+    count_list = []
+    for i in range(toxic_comments_labels.shape[1]):
+        count_list.append(np.sum(toxic_comments_labels[:, i]))
 
-# get co_occurrence count
-co_count_matrix = np.zeros((toxic_comments_labels.shape[1], toxic_comments_labels.shape[1]))
-for i in range(co_count_matrix.shape[0]):
-    for j in range(i + 1, co_count_matrix.shape[1]):
-        co_count_matrix[i, j] = np.sum(toxic_comments_labels[:, i] * toxic_comments_labels[:, j])
+    # get co_occurrence count
+    co_count_matrix = np.zeros((toxic_comments_labels.shape[1], toxic_comments_labels.shape[1]))
+    for i in range(co_count_matrix.shape[0]):
+        for j in range(i + 1, co_count_matrix.shape[1]):
+            co_count_matrix[i, j] = np.sum(toxic_comments_labels[:, i] * toxic_comments_labels[:, j])
 
-# get co_score
-co_score = np.zeros_like(co_count_matrix)
-for i in range(co_score.shape[0]):
-    for j in range(i + 1, co_score.shape[1]):
-        co_score[i, j] = co_count_matrix[i, j] / np.minimum(count_list[i], count_list[j])
-        co_score[j, i] = co_score[i, j]
+    # get co_score
+    co_score = np.zeros_like(co_count_matrix)
+    for i in range(co_score.shape[0]):
+        for j in range(i + 1, co_score.shape[1]):
+            co_score[i, j] = co_count_matrix[i, j] / np.minimum(count_list[i], count_list[j])
+            co_score[j, i] = co_score[i, j]
+    return co_score
 
-g = Graph(6)
-g.graph = co_score
-g.prim_mst()
-print("done")
+
+def get_tree(list_name):
+    co_score = get_co_score(list_name)
+    g = Graph(len(list_name))
+    g.graph = co_score
+    g.prim_mst()
