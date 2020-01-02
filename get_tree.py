@@ -3,9 +3,10 @@
 import pandas as pd
 import numpy as np
 import sys  # Library for INT_MAX
+import igraph as ig
 
 
-class Graph:
+class MaxSpanningGraph:
 
     def __init__(self, vertices):
         self.V = vertices
@@ -19,6 +20,14 @@ class Graph:
         for i in range(1, self.V):
             print(parent[i], "-", i, "\t", self.graph[i][parent[i]])
             # A utility function to find the vertex with
+
+    def save_mst(self, parent):
+        edges = []
+        edge_weights = []
+        for i in range(1, self.V):
+            edges.append((parent[i], i))
+            edge_weights.append(self.graph[i][parent[i]])
+        return edges, edge_weights
 
     # maximum distance value, from the set of vertices
     # not yet included in shortest path tree
@@ -61,6 +70,7 @@ class Graph:
                     key[v] = self.graph[u][v]
                     parent[v] = u
         self.print_mst(parent)
+        return self.save_mst(parent)
 
 
 def get_co_score(list_name):
@@ -87,8 +97,36 @@ def get_co_score(list_name):
     return co_score
 
 
+def edges_selected(threshold, edges, weights):
+    """
+    select the edge the weight of which is bigger than threshold
+    :param threshold:
+    :param edges:
+    :param weights:
+    :return:
+    """
+    edges_new = []
+    weights_new = []
+    for index in range(len(weights)):
+        if weights[index] >= threshold:
+            edges_new.append(edges[index])
+            weights_new.append(weights[index])
+    unique_v = set(sum(edges_new, ()))
+    return edges_new, weights_new, list(unique_v)
+
+
 def get_tree(list_name):
     co_score = get_co_score(list_name)
-    g = Graph(len(list_name))
-    g.graph = co_score
-    g.prim_mst()
+    max_spanning = MaxSpanningGraph(co_score.shape[0])
+    max_spanning.graph = co_score
+    edges_old, weights_old = max_spanning.prim_mst()
+    edges, edge_weights, v = edges_selected(0.9, edges_old, weights_old)
+    # plot the graph
+    tree_graph = ig.Graph()
+    tree_graph.add_vertices(v)
+    tree_graph.add_edges(edges)
+    tree_graph.vs['label'] = v
+    layout = tree_graph.layout_lgl()
+    ig.drawing.plot(tree_graph, layout=layout)
+
+

@@ -71,7 +71,7 @@ for row in tqdm(genres_h_f):
     for name in row:
         digit += np.array(one_hot[name])
     genres_digit.append(list(digit))
-gt.get_tree(genres_digit)
+edges, edge_weights = gt.get_tree(genres_digit)
 movies['genre_new'] = genres_h_f
 # delete the all 0 genre
 movies_new = movies[~(movies['genre_new'].str.len() == 0)]
