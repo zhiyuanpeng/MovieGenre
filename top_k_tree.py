@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import sys  # Library for INT_MAX
 import igraph as ig
+from tqdm import tqdm
+from itertools import combinations
 
 
 class MaxSpanningGraph:
@@ -38,7 +40,7 @@ class MaxSpanningGraph:
             if key[v] > max_value and mstSet[v] == False:
                 max_value = key[v]
                 max_index = v
-        return max_index
+        return max_index, max_value
         # Function to construct and print MST for a graph
 
     # represented using adjacency matrix representation
@@ -50,11 +52,13 @@ class MaxSpanningGraph:
         key[0] = 0
         mst_set = [False] * self.V
         parent[0] = -1  # First node is always the root of
+        score_sum = 0
         for cout in range(self.V):
             # Pick the maximum distance vertex from
             # the set of vertices not yet processed.
             # u is always equal to src in first iteration
-            u = self.max_key(key, mst_set)
+            u, score = self.max_key(key, mst_set)
+            score_sum += score
             # Put the minimum distance vertex in
             # the shortest path tree
             mst_set[u] = True
@@ -69,8 +73,7 @@ class MaxSpanningGraph:
                 if self.graph[u][v] > key[v] and mst_set[v] == False:
                     key[v] = self.graph[u][v]
                     parent[v] = u
-        self.print_mst(parent)
-        return self.save_mst(parent)
+        return self.save_mst(parent), score_sum
 
 
 def get_co_score(list_name):
@@ -97,6 +100,35 @@ def get_co_score(list_name):
     return co_score
 
 
+def mst_k(list_name, k):
+    co_score = get_co_score(list_name)
+    index_list = [i for i in range(len(list_name[0]))]
+    # all_possible is a list of tuples
+    all_possible = combinations(index_list, k)
+    edges_cache = []
+    weights_cache = []
+    score_cache = []
+    for one_possible in tqdm(all_possible):
+        co_score_k = np.zeros((k, k))
+        row = 0
+        for i in one_possible:
+            column = 0
+            for j in one_possible:
+                co_score_k[row, column] = co_score[i, j]
+                column += 1
+            row += 1
+        max_spanning = MaxSpanningGraph(co_score_k.shape[0])
+        max_spanning.graph = co_score_k
+        (edges, weights), score_sum = max_spanning.prim_mst()
+        edges_cache.append(edges)
+        weights_cache.append(weights)
+        score_cache.append(score_sum)
+    max_score = max(score_cache)
+    for i in range(len(score_cache)):
+        if score_cache[i] == max_score:
+            return edges_cache[i], weights_cache[i], max_score
+
+
 def edges_selected(threshold, edges, weights):
     """
     select the edge the weight of which is bigger than threshold
@@ -115,20 +147,13 @@ def edges_selected(threshold, edges, weights):
     return edges_new, weights_new, list(unique_v)
 
 
-
-
-def get_tree(list_name):
-    co_score = get_co_score(list_name)
-    max_spanning = MaxSpanningGraph(co_score.shape[0])
-    max_spanning.graph = co_score
-    edges_old, weights_old = max_spanning.prim_mst()
-    edges, edge_weights, v = edges_selected(0.78, edges_old, weights_old)
+def get_tree(list_name, k):
+    edges, edge_weights, max_score = mst_k(list_name, k)
     # plot the graph
     tree_graph = ig.Graph()
-    tree_graph.add_vertices(v)
+    tree_graph.add_vertices([str(i) for i in range(k)])
     tree_graph.add_edges(edges)
     tree_graph.vs["label"] = tree_graph.vs["name"]
     layout = tree_graph.layout_kamada_kawai()
     ig.drawing.plot(tree_graph, layout=layout)
-
-
+    print(max_score)

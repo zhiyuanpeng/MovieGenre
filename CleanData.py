@@ -9,7 +9,7 @@ import seaborn as sns
 from tqdm import tqdm
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-import get_tree as gt
+import top_k_tree as kt
 
 pd.set_option('display.max_colwidth', 300)
 meta = pd.read_csv("../Datasets/MovieSummaries/movie.metadata.tsv", sep='\t', header=None)
@@ -71,7 +71,7 @@ for row in tqdm(genres_h_f):
     for name in row:
         digit += np.array(one_hot[name])
     genres_digit.append(list(digit))
-edges, edge_weights = gt.get_tree(genres_digit)
+kt.get_tree(genres_digit, 20)
 movies['genre_new'] = genres_h_f
 # delete the all 0 genre
 movies_new = movies[~(movies['genre_new'].str.len() == 0)]
