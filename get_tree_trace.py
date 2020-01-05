@@ -120,14 +120,33 @@ def edges_selected(threshold, edges, weights):
     return edges_new, weights_new, list(unique_v)
 
 
+def sort_vertex(label_list, vertex):
+    """
+    return sorted vertex according to the label_list
+    :param label_list: the total sorted genre list
+    :param vertex: the selected vertex
+    :return: a list of the sorted vertex according to the label_list
+    """
+    sorted_vertex = []
+    for genre in label_list:
+        if genre in vertex:
+            sorted_vertex.append(genre)
+    return sorted_vertex
 
 
-def get_tree(list_name, label_list):
+def get_tree(list_name, label_list, steps):
+    """
+    use limited steps to implement the maximum spanning tree
+    :param list_name: the 2D list genres
+    :param label_list: the unique genre list sorted by f
+    :param steps: number of steps to implement the algorithm
+    :return: plot the tree and return the sorted nodes in the tree
+    """
     co_score = get_co_score(list_name)
     co_score_sum = np.sum(co_score, axis=1)
     max_spanning = MaxSpanningGraph(co_score.shape[0])
     max_spanning.graph = co_score
-    (edges_old, weights_old), mst_set = max_spanning.prim_mst(15, label_list)
+    (edges_old, weights_old), mst_set = max_spanning.prim_mst(steps, label_list)
     edges, edge_weights, v = edges_selected(0, edges_old, weights_old)
     # plot the graph
     tree_graph = ig.Graph()
@@ -137,3 +156,4 @@ def get_tree(list_name, label_list):
     tree_graph.es["label"] = edge_weights
     layout = tree_graph.layout_lgl()
     ig.drawing.plot(tree_graph, layout=layout, bbox=(1100, 1100), margin=(80, 80, 80, 80))
+    return sort_vertex(label_list, v)

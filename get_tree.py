@@ -115,21 +115,21 @@ def edges_selected(threshold, edges, weights):
     return edges_new, weights_new, list(unique_v)
 
 
-
-
 def get_tree(list_name, label_list):
     co_score = get_co_score(list_name)
-    co_score_sum = np.sum(co_score, axis=1)
     max_spanning = MaxSpanningGraph(co_score.shape[0])
     max_spanning.graph = co_score
     edges_old, weights_old = max_spanning.prim_mst()
-    edges, edge_weights, v = edges_selected(0.85, edges_old, weights_old)
+    edges, edge_weights, v = edges_selected(0, edges_old, weights_old)
     # plot the graph
     tree_graph = ig.Graph()
     tree_graph.add_vertices(v)
     tree_graph.add_edges(edges)
     tree_graph.vs["label"] = label_list
-    layout = tree_graph.layout_kamada_kawai()
-    ig.drawing.plot(tree_graph, layout=layout)
+    tree_graph.es["label"] = edge_weights
+    layout = tree_graph.layout_lgl()
+    ig.drawing.plot(tree_graph, layout=layout, bbox=(1100, 1100), margin=(80, 80, 80, 80))
+
+    return v
 
 
