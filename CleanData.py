@@ -9,7 +9,7 @@ import seaborn as sns
 from tqdm import tqdm
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-import top_k_tree as kt
+import get_tree_trace as gt
 
 pd.set_option('display.max_colwidth', 300)
 meta = pd.read_csv("../Datasets/MovieSummaries/movie.metadata.tsv", sep='\t', header=None)
@@ -52,26 +52,27 @@ all_genres = nltk.FreqDist(all_genres)
 # create dataframe
 all_genres_df = pd.DataFrame({'Genre': list(all_genres.keys()),
                               'Count': list(all_genres.values())})
-genres_selected = all_genres_df[all_genres_df['Count'] >= 100]
+genres_selected = all_genres_df[all_genres_df['Count'] >= 400]
 # delete the genres not contained in the genres_selected
 frequent_genres = list(genres_selected.sort_values(by=['Count'], ascending=False)['Genre'])
 genres_h_f = []
 for row in tqdm(genres):
     row_h_f = []
-    for index in range(len(row) - 1):
+    for index in range(len(row)):
         if row[index] in frequent_genres:
             row_h_f.append(row[index])
     genres_h_f.append(row_h_f)
 # use one hot to represent the genres
 one_hot = pd.get_dummies(frequent_genres)
-# use 126 vector to represent the genre
+# get the corresponding genre name
+# use vector to represent the genre
 genres_digit = []
 for row in tqdm(genres_h_f):
-    digit = np.zeros((126, ), dtype=int)
+    digit = np.zeros((len(frequent_genres), ), dtype=int)
     for name in row:
         digit += np.array(one_hot[name])
     genres_digit.append(list(digit))
-kt.get_tree(genres_digit, 20)
+gt.get_tree(genres_digit, frequent_genres)
 movies['genre_new'] = genres_h_f
 # delete the all 0 genre
 movies_new = movies[~(movies['genre_new'].str.len() == 0)]
