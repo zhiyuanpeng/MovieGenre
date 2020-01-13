@@ -1,5 +1,5 @@
 # A Python program for Prim's Minimum Spanning Tree (MST) algorithm.
-# The program is for adjacency matrix representation of the graph
+# record the trace for a selected number of steps or vertexes
 import pandas as pd
 import numpy as np
 import sys  # Library for INT_MAX
@@ -15,18 +15,19 @@ class MaxSpanningGraph:
 
         # A utility function to print the constructed MST stored in parent[]
 
-    def print_mst(self, parent):
+    def print_mst(self, parent, mst_set, label_list):
         print("Edge \tWeight")
         for i in range(1, self.V):
-            print(parent[i], "-", i, "\t", self.graph[i][parent[i]])
-            # A utility function to find the vertex with
+            if mst_set[i] == True:
+                print(label_list[parent[i]], "-", label_list[i], "\t", round(self.graph[i][parent[i]], 2))
 
-    def save_mst(self, parent):
+    def save_mst(self, parent, mst_set, label_list):
         edges = []
         edge_weights = []
         for i in range(1, self.V):
-            edges.append((str(parent[i]), str(i)))
-            edge_weights.append(self.graph[i][parent[i]])
+            if mst_set[i] == True:
+                edges.append((label_list[parent[i]], label_list[i]))
+                edge_weights.append(round(self.graph[i][parent[i]], 2))
         return edges, edge_weights
 
     # maximum distance value, from the set of vertices
@@ -42,7 +43,11 @@ class MaxSpanningGraph:
         # Function to construct and print MST for a graph
 
     # represented using adjacency matrix representation
-    def prim_mst(self):
+    def prim_mst(self, steps, label_list):
+        """
+        :param steps: the number of steps to be executed
+        :return:
+        """
         # Key values used to pick maximum weight edge in cut
         key = [float('-inf')] * self.V
         parent = [None] * self.V  # Array to store constructed MST
@@ -50,7 +55,7 @@ class MaxSpanningGraph:
         key[0] = 0
         mst_set = [False] * self.V
         parent[0] = -1  # First node is always the root of
-        for cout in range(self.V):
+        for cout in range(steps):
             # Pick the maximum distance vertex from
             # the set of vertices not yet processed.
             # u is always equal to src in first iteration
@@ -69,8 +74,8 @@ class MaxSpanningGraph:
                 if self.graph[u][v] > key[v] and mst_set[v] == False:
                     key[v] = self.graph[u][v]
                     parent[v] = u
-        self.print_mst(parent)
-        return self.save_mst(parent)
+        self.print_mst(parent, mst_set, label_list)
+        return self.save_mst(parent, mst_set, label_list), mst_set
 
 
 def get_co_score(list_name):
@@ -115,21 +120,38 @@ def edges_selected(threshold, edges, weights):
     return edges_new, weights_new, list(unique_v)
 
 
-def get_tree(list_name, label_list):
+def sort_vertex(label_list, vertex):
+    """
+    return sorted vertex according to the label_list
+    :param label_list: the total sorted genre list
+    :param vertex: the selected vertex
+    :return: a list of the sorted vertex according to the label_list
+    """
+    sorted_vertex = []
+    for genre in label_list:
+        if genre in vertex:
+            sorted_vertex.append(genre)
+    return sorted_vertex
+
+
+def get_tree(list_name, label_list, steps):
+    """
+    use limited steps to implement the maximum spanning tree
+    :param list_name: the 2D list genres
+    :param label_list: the unique genre list sorted by f
+    :param steps: number of steps to implement the algorithm
+    :return: plot the tree and return the sorted nodes in the tree
+    """
     co_score = get_co_score(list_name)
+    co_score_sum = np.sum(co_score, axis=1)
     max_spanning = MaxSpanningGraph(co_score.shape[0])
     max_spanning.graph = co_score
-    edges_old, weights_old = max_spanning.prim_mst()
+    (edges_old, weights_old), mst_set = max_spanning.prim_mst(steps, label_list)
     edges, edge_weights, v = edges_selected(0, edges_old, weights_old)
     # plot the graph
     tree_graph = ig.Graph()
     tree_graph.add_vertices(v)
     tree_graph.add_edges(edges)
-    tree_graph.vs["label"] = label_list
+    tree_graph.vs["label"] = tree_graph.vs["name"]
     tree_graph.es["label"] = edge_weights
-    layout = tree_graph.layout_lgl()
-    ig.drawing.plot(tree_graph, layout=layout, bbox=(1100, 1100), margin=(80, 80, 80, 80))
-
-    return v
-
-
+    return sort_vertex(label_list, v), tree_graph
