@@ -3,7 +3,6 @@ import math
 from tqdm import tqdm
 
 
-
 def bit_to_list(t, n):
     """
     convert an int to list

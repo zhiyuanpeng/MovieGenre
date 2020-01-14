@@ -9,7 +9,7 @@ def x_write(list_name, list_to_file_name):
 
 def read_to_list_threshold(file_name, threshold):
     list_threshold = []
-    with open("./data/split_test/" + file_name + "_predict_2000.txt", "r") as f:
+    with open("./data/split_test/" + file_name + "_predict_1478.txt", "r") as f:
         without_round = f.readlines()
         for value in without_round:
             if float(value) > threshold:
@@ -21,7 +21,7 @@ def read_to_list_threshold(file_name, threshold):
 
 def round_with_threshold(file_name, threshold):
     round_list = read_to_list_threshold(file_name, threshold)
-    x_write(round_list, "./data/split_test/" + file_name + "_predict_round_" + str(threshold) + "_2000.txt")
+    x_write(round_list, "./data/split_test/" + file_name + "_predict_round_" + str(threshold) + "_1478.txt")
 
 
 def adjust_threshold(file_dire, threshold):
@@ -31,8 +31,8 @@ def adjust_threshold(file_dire, threshold):
     :param threshold:
     :return: the predict_round and right_sum
     """
-    predict = np.loadtxt("./data/split_test/" + file_dire + "_predict_878.txt")
-    label = np.loadtxt("./data/split_test/" + file_dire + "_truth_878.txt", dtype=int)
+    predict = np.loadtxt("./data/split_test/" + file_dire + "_predict_1400.txt")
+    label = np.loadtxt("./data/split_test/" + file_dire + "_truth_1400.txt", dtype=int)
     right_sum = 0
     predict_round = []
     for i in range(predict.shape[0]):
@@ -52,7 +52,7 @@ def optimal_search(file_name):
     :param file_name:
     :return:
     """
-    threshold = 0.5
+    threshold = 0.1
     predict_list = []
     accuracy_list = []
     threshold_list = []
@@ -74,12 +74,12 @@ def main():
         # get the optimal
         edge_name = "l" + str(edge[0]) + "_" + "l" + str(edge[1])
         opt_predict, opt_accracy, opt_threshold = optimal_search(edge_name)
-        # use the optimal threshold to deal the left 2000 data
+        # use the optimal threshold to deal the left 1478 data
         round_with_threshold(edge_name, opt_threshold)
         with open(optimal_file, "a+") as opt:
             opt.write(edge_name + " with optimal threshold " + str(opt_threshold) + ", the accuracy is " + str(opt_accracy) + "\n")
         x_write(opt_predict, "./data/store/" + edge_name + "/" + edge_name + "_predict_round_"
-                + str(opt_threshold) + "_878.txt")
+                + str(opt_threshold) + "_1400.txt")
 
 
 if __name__ == '__main__':
